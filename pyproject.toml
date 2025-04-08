@@ -1,7 +1,7 @@
 [project]
 name = "merge-mcp"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "An MCP interface for the Merge API"
 readme = "README.md"
 authors = [
     { email = "david.dalmaso@merge.dev" }
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-merge-mcp = "merge_mcp:main"
+merge-mcp = "merge_mcp.main:main"
 
 [build-system]
 requires = ["hatchling"]

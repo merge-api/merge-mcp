@@ -340,7 +340,6 @@ class MergeAPIClient:
                     
                     # Attempt to decode JSON, if fails return raw text.
                     try:
-                        print(response)
                         return response.json()
                     except json.JSONDecodeError:
                         logger.warning(f"Response content is not in JSON format: {response.text[:100]}...")
