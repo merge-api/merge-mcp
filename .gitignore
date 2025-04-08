@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Python version
+.python-version
+
+# VSCode
+.vscode/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and OS files
+.DS_Store
+
+# Cache directories
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.uv/
+
+# Logs
+*.log
