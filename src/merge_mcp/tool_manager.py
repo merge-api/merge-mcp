@@ -110,8 +110,8 @@ class ToolManager:
         name = operation_schema["operationId"]
         description = operation_schema["description"]
 
-        if "meta" in name and not is_creating_meta_tool:
-            # Meta operations are ignored by default
+        if ("meta" in name and not is_creating_meta_tool) or ("download" in name):
+            # Meta operations are ignored by default, download operations are not supported
             return []
 
         input_schema = self._schema_parser.extract_input_schema_and_update_parameters(operation_schema, self._schema_index)

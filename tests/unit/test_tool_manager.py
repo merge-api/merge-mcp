@@ -497,3 +497,30 @@ async def test_call_tool_error(mock_schema_index, mock_client):
             assert isinstance(result[0], TextContent)
             assert "Failed to call tickets_list" in result[0].text
             assert "API error" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_ignore_tools_with_download_in_name(mock_schema_index, mock_client):
+    """Test that tools with 'download' in the name are ignored."""
+    with patch("merge_mcp.tool_manager.MergeAPIClient.get_instance", return_value=mock_client):
+        tool_manager = ToolManager(mock_schema_index, [])
+        tool_manager._client = mock_client
+        tool_manager._schema_index = mock_schema_index
+
+        # Mock _build_request_from_schema_and_arguments
+        with patch.object(tool_manager, "_build_request_from_schema_and_arguments") as mock_build:
+            # Create a schema with a name that has 'download' in it
+            operation_schema = {
+                "operationId": "tickets_download",
+                "description": "Download all tickets",
+                "method": "get",
+                "endpoint": "/tickets/download",
+                "parameters": []
+            }
+            mock_schema_index.get_all_operation_schemas.return_value = [operation_schema]
+
+            # Test that the tool is ignored
+            result = await tool_manager.fetch_tools()
+
+            # Check that no tools were returned
+            assert len(result) == 0

@@ -125,6 +125,8 @@ Tools are dynamically generated based on your Merge API schema and include opera
 - Updating existing entities
 - And more, based on your specific Merge API configuration
 
+**Note:** Download tools are not currently supported. This is a known limitation and will be addressed in a future release.
+
 ## 🔑 Environment Variables
 
 The following environment variables are used by the Merge MCP Server:
