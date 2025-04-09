@@ -1,3 +1,4 @@
+import uuid
 import asyncio
 import json
 import logging
@@ -60,6 +61,7 @@ class MergeAPIClient:
         self._api_key = api_key or os.getenv("MERGE_API_KEY")
         self._account_token = account_token or os.getenv("MERGE_ACCOUNT_TOKEN")
         self._tenant = os.getenv("MERGE_TENANT").upper() if os.getenv("MERGE_TENANT") else "US"
+        self._session_id = str(uuid.uuid4())
         self._account_info = None
         self._initialized = True
         self._category = None
@@ -248,6 +250,8 @@ class MergeAPIClient:
         if not unauthorized:
             headers["Authorization"] = f"Bearer {self._api_key}"
             headers["X-Account-Token"] = self._account_token
+
+        headers["MCP-Session-ID"] = self._session_id
         
         if additional_headers:
             headers.update(additional_headers)

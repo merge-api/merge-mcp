@@ -263,17 +263,23 @@ def test_get_headers(merge_client):
     headers = merge_client._get_headers()
     assert headers["Authorization"] == "Bearer test_api_key"
     assert headers["X-Account-Token"] == "test_account_token"
+    assert "MCP-Session-ID" in headers
+    assert headers["MCP-Session-ID"] == merge_client._session_id
     
     # Unauthorized headers
     headers = merge_client._get_headers(unauthorized=True)
     assert "Authorization" not in headers
     assert "X-Account-Token" not in headers
+    assert "MCP-Session-ID" in headers
+    assert headers["MCP-Session-ID"] == merge_client._session_id
     
     # Additional headers
     headers = merge_client._get_headers(additional_headers={"Custom-Header": "Value"})
     assert headers["Authorization"] == "Bearer test_api_key"
     assert headers["X-Account-Token"] == "test_account_token"
     assert headers["Custom-Header"] == "Value"
+    assert "MCP-Session-ID" in headers
+    assert headers["MCP-Session-ID"] == merge_client._session_id
 
 def test_format_url(merge_client):
     """Test _format_url method."""
@@ -427,3 +433,49 @@ async def test_make_request_unexpected_error(merge_client, mock_httpx_client):
     
     # Verify retry behavior
     assert client_instance.request.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_session_id(merge_client):
+    """Test that session_id is properly initialized and used in headers."""
+    # Reset singleton for this test
+    MergeAPIClient._instance = None
+
+    # Create a new client instance
+    with patch.dict('os.environ', {
+        'MERGE_API_KEY': 'test_api_key',
+        'MERGE_ACCOUNT_TOKEN': 'test_account_token',
+        'MERGE_TENANT': 'US'
+    }), patch('httpx.AsyncClient') as mock_client:
+        client = merge_client
+
+        # Test that session_id is initialized as a UUID string
+        assert client._session_id is not None
+        assert isinstance(client._session_id, str)
+
+        # UUID should be 36 characters in the format 8-4-4-4-12
+        assert len(client._session_id) == 36
+
+        # Store the session_id for later comparison
+        session_id = client._session_id
+
+        # Test that session_id is included in headers
+        headers = client._get_headers()
+        assert headers["MCP-Session-ID"] == session_id
+
+        # Test that the same session_id is used for all requests
+        with patch('httpx.AsyncClient') as mock_client:
+            mock_response = AsyncMock()
+            mock_response.status_code = 200
+            mock_response.raise_for_status = AsyncMock()
+            mock_response.json = AsyncMock(return_value={"data": "test"})
+
+            mock_client.return_value.__aenter__.return_value.request = AsyncMock(return_value=mock_response)
+
+            await client._make_request("GET", "test-endpoint")
+
+            # Verify the session_id was included in the request headers
+            call_kwargs = mock_client.return_value.__aenter__.return_value.request.call_args[1]
+            assert "headers" in call_kwargs
+            assert "MCP-Session-ID" in call_kwargs["headers"]
+            assert call_kwargs["headers"]["MCP-Session-ID"] == session_id
