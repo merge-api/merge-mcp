@@ -26,6 +26,6 @@ async def serve(scopes: List[str] | None = None) -> None:
         return await tool_manager.call_tool(name, arguments)
 
     options = server.create_initialization_options()
-    print("Starting server...")
+    print("Server initialized successfully. Awaiting requests...")
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, options)

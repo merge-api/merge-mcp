@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: uv-black
+        name: "Black (via uv)"
+        entry: uv run black
+        language: system
+        types: [python]
+

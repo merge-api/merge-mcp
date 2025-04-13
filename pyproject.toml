@@ -10,6 +10,7 @@ requires-python = ">=3.10"
 dependencies = [
     "isort>=6.0.1",
     "mcp",
+    "pre-commit>=4.2.0",
 ]
 
 [project.scripts]

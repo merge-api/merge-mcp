@@ -12,6 +12,7 @@ from merge_mcp.constants import (
 )
 from merge_mcp.types import CommonModelScope
 
+
 class SchemaIndex:
     """
     A class to index and manage an OpenAPI schema.
@@ -29,14 +30,18 @@ class SchemaIndex:
     def __init__(self, merge_openapi: dict, available_scopes: List[CommonModelScope]):
         self._merge_openapi = merge_openapi
         self._client = MergeAPIClient.get_instance()
-        self._component_properties_map = self._build_component_properties_map(self._merge_openapi)
-        self._tag_to_scope_availability = self._build_tag_to_scope_availability(available_scopes)
+        self._component_properties_map = self._build_component_properties_map(
+            self._merge_openapi
+        )
+        self._tag_to_scope_availability = self._build_tag_to_scope_availability(
+            available_scopes
+        )
         self._index = self._build_index_for_available_scopes()
         self._operation_id_to_schema_map = self._build_operation_id_to_schema_map()
 
     def _build_index(self) -> dict:
         """Build a complete index of all schemas without fetching meta schemas.
-        
+
         This is used when available_scopes is not provided.
         """
         paths = self._merge_openapi.get("paths", {})
@@ -50,21 +55,29 @@ class SchemaIndex:
                         index[tag] = {}
                     if method not in index[tag]:
                         index[tag][method] = []
-                    index[tag][method].append({
-                        **schema,
-                        "endpoint": endpoint,
-                        "method": method
-                    })
+                    index[tag][method].append(
+                        {**schema, "endpoint": endpoint, "method": method}
+                    )
         return index
 
-    def _build_component_properties_map(self, openapi_schema: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-        schema_component_keys = openapi_schema.get("components", {}).get("schemas", {}).keys()
+    def _build_component_properties_map(
+        self, openapi_schema: Dict[str, Any]
+    ) -> Dict[str, Dict[str, Any]]:
+        schema_component_keys = (
+            openapi_schema.get("components", {}).get("schemas", {}).keys()
+        )
         component_properties_map = {}
         for schema_component_key in schema_component_keys:
-            component_properties_map[schema_component_key] = openapi_schema.get("components", {}).get("schemas", {}).get(schema_component_key)
+            component_properties_map[schema_component_key] = (
+                openapi_schema.get("components", {})
+                .get("schemas", {})
+                .get(schema_component_key)
+            )
         return component_properties_map
 
-    def _build_tag_to_scope_availability(self, available_scopes: List[CommonModelScope]) -> Dict[str, Dict[str, bool]]:
+    def _build_tag_to_scope_availability(
+        self, available_scopes: List[CommonModelScope]
+    ) -> Dict[str, Dict[str, bool]]:
         """
         Build a lookup dictionary of tags to scope availability from available scopes.
 
@@ -98,10 +111,9 @@ class SchemaIndex:
             if model_tag:
                 tag_to_scope_availability[model_tag] = {
                     READ_SCOPE: scope.is_read_enabled,
-                    WRITE_SCOPE: scope.is_write_enabled
+                    WRITE_SCOPE: scope.is_write_enabled,
                 }
         return tag_to_scope_availability
-
 
     def _create_tag_from_model(self, model: str) -> str:
         """
@@ -114,31 +126,30 @@ class SchemaIndex:
 
         Args:
             model: The model name.
-            
+
         Returns:
             The tag for the model.
         """
         if model in IRREGULAR_TAG_MAP:
             return IRREGULAR_TAG_MAP[model]
-        
+
         # Insert an underscore before any uppercase letter that is not at the beginning,
         # then convert the entire string to lowercase and append an 's'
-        snake_case = re.sub(r'(?<!^)(?=[A-Z])', '-', model).lower()
+        snake_case = re.sub(r"(?<!^)(?=[A-Z])", "-", model).lower()
         if snake_case in SINGULAR_TAGS:
             return snake_case
         return snake_case + "s"
 
-        
     def _build_index_for_available_scopes(self) -> dict:
         """
         Build an index filtered by available scopes
-        
+
         Returns:
             The filtered index of the shape { tag: { method: [schema] } }.
         """
         paths = self._merge_openapi.get("paths", {})
         index = {}
-        
+
         # Build index only for available models and operations
         for endpoint, ops in paths.items():
             for method, schema in ops.items():
@@ -148,9 +159,13 @@ class SchemaIndex:
                     continue
 
                 # Skip if operation type doesn't match available permissions
-                if method in READ_METHODS and not all(self._tag_to_scope_availability[tag][READ_SCOPE] for tag in tags):
+                if method in READ_METHODS and not all(
+                    self._tag_to_scope_availability[tag][READ_SCOPE] for tag in tags
+                ):
                     continue
-                if method in WRITE_METHODS and not all(self._tag_to_scope_availability[tag][WRITE_SCOPE] for tag in tags):
+                if method in WRITE_METHODS and not all(
+                    self._tag_to_scope_availability[tag][WRITE_SCOPE] for tag in tags
+                ):
                     continue
 
                 # Create schema entry
@@ -167,7 +182,7 @@ class SchemaIndex:
                     if method not in index[tag]:
                         index[tag][method] = []
                     index[tag][method].append(schema_entry)
-        
+
         return index
 
     def _build_operation_id_to_schema_map(self) -> dict:
@@ -182,11 +197,15 @@ class SchemaIndex:
     def get_all_operation_schemas(self) -> List[Dict[str, Any]]:
         return list(self._operation_id_to_schema_map.values())
 
-    def update_schema_parameters_by_operation_id(self, operation_id: str, schema_parameters: List[Dict[str, Any]]) -> None:
+    def update_schema_parameters_by_operation_id(
+        self, operation_id: str, schema_parameters: List[Dict[str, Any]]
+    ) -> None:
         self._operation_id_to_schema_map[operation_id]["parameters"] = schema_parameters
-    
+
     def get_by_operation_id(self, operation_id: str) -> Optional[Dict[str, Any]]:
         return self._operation_id_to_schema_map.get(operation_id)
 
-    def get_schema_component_properties(self, component_name: str) -> Optional[Dict[str, Any]]:
+    def get_schema_component_properties(
+        self, component_name: str
+    ) -> Optional[Dict[str, Any]]:
         return self._component_properties_map.get(component_name)

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Dict, Any
 
+
 class CommonModelScope(BaseModel):
     model_name: str
     is_read_enabled: bool
