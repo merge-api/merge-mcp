@@ -1,6 +1,6 @@
 [project]
 name = "merge-mcp"
-version = "0.1.3"
+version = "0.1.4"
 description = "An MCP interface for the Merge API"
 readme = "README.md"
 authors = [
