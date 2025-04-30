@@ -20,6 +20,7 @@ EXCLUDED_PARAMETERS = ["include_deleted_data", "include_remote_data", "include_s
 
 # TAG RELATED CONSTANTS
 IRREGULAR_TAG_MAP = {
-    "RemoteUser": "users"
+    "RemoteUser": "users",
+    "Opportunity": "opportunities"
 }
 SINGULAR_TAGS = {"time-off", "bank-info"}
